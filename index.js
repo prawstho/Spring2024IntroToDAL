@@ -1,5 +1,7 @@
 const http = require('http');
 
+const { getActors } = require('./services/actors.dal')
+
 const port = 3000;
 
 global.DEBUG = true;
@@ -20,11 +22,10 @@ const server = http.createServer( async (request, response) => {
       response.end('Welcome to the DAL.');
       break;
     case '/actors/':
-      // let theActors = await getActors(); // fetch actors from postgresql
-      // response.writeHead(200, { 'Content-Type': 'application/json' });
-      // response.write(JSON.stringify(theActors));
-      response.writeHead(200, { 'Content-Type': 'text/plain' });
-      response.end('the actors route');
+      let theActors = await getActors(); // fetch actors from postgresql
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.write(JSON.stringify(theActors));
+      response.end();
       break;
     default:
       // let message = `404 - Content Not Found.`;
