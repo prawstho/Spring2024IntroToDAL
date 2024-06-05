@@ -1,5 +1,6 @@
 const http = require('http');
 
+const myEventEmitter = require('./logEvents');
 const { getActors } = require('./services/actors.dal')
 
 const port = 3000;
@@ -14,25 +15,36 @@ const server = http.createServer( async (request, response) => {
     response.end();
     return;
   }
-  if(DEBUG) console.log('Request Url:', request.url);
+  const fullUrl = `http://${request.headers.host}${request.url}`;
+  if(DEBUG) console.log('Request Url:', fullUrl);
   switch(request.url) {
     case '/':
-      // myEmitter.emit('event', request.url, 'INFO', 'Root of Server successfully rendered.');
+      myEventEmitter.emit('event', fullUrl, 'INFO', 'Root of Server successfully rendered.');
       response.writeHead(200, { 'Content-Type': 'text/plain' });
       response.end('Welcome to the DAL.');
       break;
     case '/actors/':
-      let theActors = await getActors(); // fetch actors from postgresql
-      response.writeHead(200, { 'Content-Type': 'application/json' });
-      response.write(JSON.stringify(theActors));
-      response.end();
+      try {
+        let theActors = await getActors(); // fetch actors from postgresql
+        myEventEmitter.emit('event', fullUrl, 'INFO', 'Actors fetched from database.');
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.write(JSON.stringify(theActors));
+      } catch (error) {
+        console.error(error);
+        let message = `500 - server error with internal error code of ${error.code}.`
+        myEventEmitter.emit('event', fullUrl, 'ERROR', message);
+        response.writeHead(500, { 'Content-Type': 'application/json' });
+        response.write(JSON.stringify({ error: 'An error occurred while fetching actors' }));
+      } finally {
+        response.end();
+      }
       break;
     default:
-      // let message = `404 - Content Not Found.`;
-      // if(DEBUG) console.log(message);
-      // myEmitter.emit('event', request.url, 'ERROR', message);
-      // response.writeHead(404, { 'Content-Type': 'text/plain' });
-      // response.end('404 - Content Not Found.');
+      let message = `404 - Content Not Found.`;
+      if(DEBUG) console.log(message);
+      myEventEmitter.emit('event', fullUrl, 'ERROR', message);
+      response.writeHead(404, { 'Content-Type': 'text/plain' });
+      response.end('404 - Content Not Found.');
       break;
   }
 });
