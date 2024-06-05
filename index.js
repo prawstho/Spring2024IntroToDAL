@@ -1,7 +1,7 @@
 const http = require('http');
 
 const myEventEmitter = require('./logEvents');
-const { getActors } = require('./services/actors.dal')
+const { getActors, getActorFilms } = require('./services/actors.dal')
 
 const port = 3000;
 
@@ -35,6 +35,18 @@ const server = http.createServer( async (request, response) => {
         myEventEmitter.emit('event', fullUrl, 'ERROR', message);
         response.writeHead(500, { 'Content-Type': 'application/json' });
         response.write(JSON.stringify({ error: 'An error occurred while fetching actors' }));
+      } finally {
+        response.end();
+      }
+      break;
+    case '/films/':
+      try {
+        let theActorFilms = await getActorFilms(); // fetch actors from postgresql
+        myEventEmitter.emit('event', fullUrl, 'INFO', 'Actor Films fetched from database.');
+        response.writeHead(500, { 'Content-Type': 'application/json' });
+        response.write(JSON.stringify(theActorFilms));
+      } catch (error) {
+        console.error(error);
       } finally {
         response.end();
       }
