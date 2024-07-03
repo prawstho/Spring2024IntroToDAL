@@ -28,7 +28,7 @@ var getActors = function() {
   }); 
 };
 
-
+// get one actor
 var getActorById = function(theId) {
   if(DEBUG) console.log("actors.dal.getActorById()");
   if(DEBUG) console.log(`the actors id is: ${theId}`)
@@ -50,6 +50,7 @@ var getActorById = function(theId) {
   }); 
 };
 
+// get the films for all actors
 var getActorFilms = function() {
   if(DEBUG) console.log("actors.dal.getActorFilms()");
   return new Promise(function(resolve, reject) {
@@ -76,8 +77,26 @@ var getActorFilms = function() {
   });   
 }
 
+// add a new actor
+var addActor = function(fname, lname) {
+  if(DEBUG) console.log("actors.pg.dal.addActor()");
+  return new Promise(function(resolve, reject) {
+    const sql = "INSERT INTO public.actor(first_name, last_name) \
+        VALUES ($1, $2);";
+    pool.query(sql, [fname, lname], (err, result) => {
+      if (err) {
+          if(DEBUG) console.log(err);
+          reject(err);
+        } else {
+          resolve(result.rows);
+        }
+    }); 
+  });
+};
+
 module.exports = {
   getActors,
   getActorById,
   getActorFilms,
+  addActor,
 }

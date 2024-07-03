@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { getActors, getActorById } = require('../services/actors.dal')
+const { getActors, getActorById, addActor } = require('../services/actors.dal')
 
 // https://localhost:3000/actors/
 router.get('/', async (request, response) => {
@@ -28,5 +28,24 @@ router.get("/:id", async (request, response) => {
     response.status(500).send('500 - Server error with data fetching.');
   }
 })
+// router.post
+router.post('/', async (request, response) => {
+  if(DEBUG) { 
+      console.log('ROUTE: /actors/ POST');
+      console.log(request.body);
+  }
+  try {
+      await addActor(request.body.firstName, request.body.lastName );
+      response.statusCode = 201;
+      response.json({message: "Created", status: 201});
+  } catch {
+      // log this error to an error log file.
+      response.statusCode = 503;
+      response.json({message: "Service Unavailable", status: 503});
+  } 
+});
+// router.put
+// router.patch
+// router.delete
 
 module.exports = router;
